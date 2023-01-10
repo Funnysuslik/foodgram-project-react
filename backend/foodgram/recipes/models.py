@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import (
     MaxValueValidator,
@@ -11,7 +10,11 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    """"""
+    """
+    Модель тэгов для рецептов (ManyToMany).
+    Related names:
+    recipe = recipes
+    """
 
     name = models.CharField(
         max_length=200,
@@ -29,7 +32,12 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """"""
+    """
+    Модель для ингридиентов в рецептах (ManyToMany).
+    Related names:
+    Recipe = recipes
+    IngredientAmount(throught_model) = ingredient_amount
+    """
 
     name = models.CharField(
         max_length=200,
@@ -44,7 +52,14 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    """"""
+    """
+    Модель рецептов на сайте.
+    Related names:
+    ingredients(throught_model) = ingredient_amount
+    Favorite = favorite
+    ShoppingCart = shopping_cart
+
+    """
 
     tags = models.ManyToManyField(
         Tag,
@@ -52,7 +67,7 @@ class Recipe(models.Model):
         blank=False,
     )
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         null=False,
         blank=False,
         on_delete=models.CASCADE,
@@ -62,6 +77,7 @@ class Recipe(models.Model):
         Ingredient,
         related_name='recipes',
         blank=False,
+        through='IngredientAmount'
     )
     name = models.CharField(
         null=False,
@@ -83,15 +99,24 @@ class Recipe(models.Model):
         validators=[
             MinValueValidator(1),
             MaxValueValidator(999),
-        ]
+        ],
     )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
 
 
 class ShoppingCart(models.Model):
-    """"""
+    """
+    Модель для сохранения ингридентов из рецептов в список покупок.
+    """
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
         blank=False,
@@ -105,10 +130,12 @@ class ShoppingCart(models.Model):
 
 
 class Favorite(models.Model):
-    """"""
+    """
+    Модель для сохранения рецептов.
+    """
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         blank=False,
         related_name='favorite',
@@ -120,24 +147,32 @@ class Favorite(models.Model):
         blank=False,
     )
 
+    class Meta:
+        unique_together = ('user', 'recipe',)
+
 
 class Subscription(models.Model):
-    """"""
+    """
+    Модель для подписки пользователей на авторов рецептов.
+    """
 
-    subscriber = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscriber',
+        related_name='subscribe_user',
     )
-    subscribed = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='subscribed',
+        related_name='subscribe_author',
     )
 
 
 class IngredientAmount(models.Model):
-    """"""
+    """
+    Промежуточная модель для ManyToMany связи модели рецептов
+    и модели ингредиентов с указанием количество последних.
+    """
 
     recipe = models.ForeignKey(
         Recipe,
@@ -146,7 +181,7 @@ class IngredientAmount(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='ingredient_amount',
     )
     amount = models.IntegerField(

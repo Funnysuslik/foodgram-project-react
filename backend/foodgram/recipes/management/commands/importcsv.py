@@ -27,7 +27,6 @@ class Command(BaseCommand):
                 name=row['name'],
                 measurement_unit=row['measurement_unit'],
             )
-            print(ingredient)
 
         print('Ingredients done..')
         print('DB filled')

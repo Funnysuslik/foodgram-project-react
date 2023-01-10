@@ -8,10 +8,11 @@ SECRET_KEY = 'django-insecure-_&kp51&5pdzt_7vr=6*gb$1)j0edop6*z=kk*o1g3(zho5*s#7
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*',]
+ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', '.backend']
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'
+USE_X_FORWARDED_HOST = True
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost',]
 
@@ -22,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
@@ -62,8 +64,15 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
+        'ENGINE': os.getenv(
+            'DB_ENGINE',
+            default='django.db.backends.postgresql'
+        ),
+        'NAME': os.getenv('DB_NAME', default='postgres'),
+        'USER': os.getenv('POSTGRE_USER', default='postgres'),
+        'PASSWORD': os.getenv('POSTGRE_PASSWORD', default='postgres'),
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default=5432),
     }
 }
 
@@ -106,9 +115,7 @@ DJOSER = {
         'current_user': 'api.serializers.CustomUserSerializer',
     },
     'PERMISSIONS': {
-        'user_create': ['rest_framework.permissions.AllowAny'],
-        'user': ['rest_framework.permissions.AllowAny'],  # CurrentUserOrAdmin
-        'user_list': ['rest_framework.permissions.AllowAny'],  # CurrentUserOrAdmin
+        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
 }
 
@@ -119,6 +126,9 @@ SIMPLE_JWT = {
 
 REST_FRAMEWORK = {
 
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 1,
+
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
@@ -126,7 +136,4 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    # 'PAGE_SIZE': 1,
 }
