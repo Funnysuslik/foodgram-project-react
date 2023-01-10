@@ -8,16 +8,8 @@ from .models import (
     ShoppingCart,
     Subscription,
     Tag,
-    User,
 )
 
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    """"""
-
-    list_display = ('username', 'email', 'first_name', 'last_name')
-    search_fields = ('first_name', 'email')
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -48,6 +40,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'image',
         'text',
         'cooking_time',
+        'favorite_count',
+        'shoppingcart_count',
     )
     search_fields = (
         'name',
@@ -57,22 +51,15 @@ class RecipeAdmin(admin.ModelAdmin):
         'tags__name',
         'tags__slug',
     )
+    readonly_fields = ('favorite_count', 'shoppingcart_count')
 
-    fieldsets = (
-        ('Основные данные', {
-            'fields': (
-                'name', 'author', 'image', 'tags'
-            )
-        }),
-        ('Доп. информация', {
-            'fields': (
-                'favorite_count',
-                'shoppingcart_count'
-            )
-        }
+    def favorite_count(self, obj):
 
-        )
-    )
+        return obj.favorite.count()
+
+    def shoppingcart_count(self, obj):
+
+        return obj.shopping_cart.count()
 
 
 @admin.register(ShoppingCart)
