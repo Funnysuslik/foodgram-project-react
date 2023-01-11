@@ -3,6 +3,7 @@ from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from . import helpers
 from recipes.models import (
     Ingredient,
     IngredientAmount,
@@ -23,13 +24,12 @@ class CustomUserSerializer(UserSerializer):
 
     is_subscribed = serializers.SerializerMethodField()
 
-    def get_is_subscribed(self, user):
+    def get_is_subscribed(self, author):
 
         try:
-            current_user = self.context.get('user')
+            user = self.context['request'].user
 
-            return current_user.subscriber.filter(subscribed=user).exists()
-
+            return user.subscribe_user.filter(author=author).exists()
         except AttributeError:
 
             return False
@@ -37,8 +37,13 @@ class CustomUserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
-            'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed', )  # 'recipes', )
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+        )
         read_only_fields = ('email',)
 
 
@@ -148,40 +153,24 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredient_amount')
         tags = validated_data.pop('tags')
 
-        obj = Recipe.objects.create(**validated_data)
-        obj.save()
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.save()
 
-        obj.tags.set(tags)
+        recipe = helpers.set_tags_ingredients(recipe, ingredients, tags)
 
-        for ingredient in ingredients:
-            IngredientAmount.objects.create(
-                recipe=obj,
-                ingredient=ingredient['id'],
-                amount=ingredient['amount'],
-            ).save()
-
-        return obj
+        return recipe
 
     @transaction.atomic
-    def update(self, instanse, validated_data):
+    def update(self, recipe, validated_data):
         ingredients = validated_data.pop('ingredient_amount')
         tags = validated_data.pop('tags')
 
         for field, value in validated_data.items():
-            setattr(instanse, field, value)
+            setattr(recipe, field, value)
 
-        instanse.tags.set(tags),
-        instanse.image = validated_data.get('image', instanse.image)
+        recipe = helpers.set_tags_ingredients(recipe, ingredients, tags)
 
-        instanse.ingredients.clear()
-        for ingredient in ingredients:
-            IngredientAmount.objects.create(
-                recipe=instanse,
-                ingredient=ingredient['id'],
-                amount=ingredient['amount'],
-            ).save()
-
-        return super().update(instanse, validated_data)
+        return super().update(recipe, validated_data)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -268,38 +257,25 @@ class SubscribeSerializer(serializers.ModelSerializer):
     Сериализатор для подписок на пользователей.
     """
 
-    email = serializers.SerializerMethodField()
-    id = serializers.SerializerMethodField()
-    username = serializers.SerializerMethodField()
-    first_name = serializers.SerializerMethodField()
-    last_name = serializers.SerializerMethodField()
+    email = serializers.EmailField()
+    id = serializers.PrimaryKeyRelatedField(read_only=True, source='pk')
+    username = serializers.StringRelatedField()
+    first_name = serializers.StringRelatedField()
+    last_name = serializers.StringRelatedField()
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
-    def get_email(self, obj):
+    def get_is_subscribed(self, author):
 
-        return obj.email
+        try:
+            user = self.context['request'].user
 
-    def get_id(self, obj):
+            return user.subscribe_user.filter(author=author).exists()
 
-        return obj.id
+        except AttributeError:
 
-    def get_username(self, obj):
-
-        return obj.username
-
-    def get_first_name(self, obj):
-
-        return obj.first_name
-
-    def get_last_name(self, obj):
-
-        return obj.last_name
-
-    def get_is_subscribed(self, obj):
-
-        return True
+            return False
 
     def get_recipes(self, obj):
         recipes = obj.recipes
@@ -312,67 +288,6 @@ class SubscribeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-
-
-class SubscriptionsSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для просмотра подписок.
-    """
-
-    email = serializers.SerializerMethodField()
-    id = serializers.SerializerMethodField()
-    username = serializers.SerializerMethodField()
-    first_name = serializers.SerializerMethodField()
-    last_name = serializers.SerializerMethodField()
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-
-    def get_email(self, obj):
-
-        return obj.email
-
-    def get_id(self, obj):
-
-        return obj.pk
-
-    def get_username(self, obj):
-
-        return obj.username
-
-    def get_first_name(self, obj):
-
-        return obj.first_name
-
-    def get_last_name(self, obj):
-
-        return obj.last_name
-
-    def get_is_subscribed(self, obj):
-
-        return True
-
-    def get_recipes(self, obj):
-        recipes = obj.recipes
-
-        return RecipeForSubSerializer(recipes, many=True).data
-
-    def get_recipes_count(self, obj):
-
-        return obj.recipes.count()
-
-    class Meta:
-        model = User
         fields = (
             'email',
             'id',

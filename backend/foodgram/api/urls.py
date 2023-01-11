@@ -15,11 +15,11 @@ from .views import (
 
 app_name = 'api'
 
-router = routers.DefaultRouter()
-router.register(r'users', CustomUserViewSet)
-router.register(r'tags', TagViewSet)
-router.register(r'ingredients', IngredientViewSet)
-router.register(r'recipes', RecipeViewSet)
+router_v1 = routers.DefaultRouter()
+router_v1.register(r'users', CustomUserViewSet)
+router_v1.register(r'tags', TagViewSet)
+router_v1.register(r'ingredients', IngredientViewSet)
+router_v1.register(r'recipes', RecipeViewSet)
 
 urlpatterns = [
     path(
@@ -47,6 +47,6 @@ urlpatterns = [
         DownloadShoppingCart.as_view(),
         name='download_shopping_cart'
     ),
-    path('', include(router.urls)),
+    path('', include(router_v1.urls)),
     path(r'auth/', include('djoser.urls.authtoken')),
 ]

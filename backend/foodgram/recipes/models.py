@@ -22,7 +22,7 @@ class Tag(models.Model):
     color = models.CharField(
         max_length=7,
     )
-    slug = models.CharField(
+    slug = models.SlugField(
         max_length=200,
         validators=[
             RegexValidator('^[-a-zA-Z0-9_]+$'),
@@ -41,13 +41,9 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         max_length=200,
-        blank=False,
-        null=False,
     )
     measurement_unit = models.CharField(
         max_length=200,
-        blank=False,
-        null=False,
     )
 
 
@@ -64,38 +60,25 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
-        blank=False,
     )
     author = models.ForeignKey(
         User,
-        null=False,
-        blank=False,
         on_delete=models.CASCADE,
         related_name='recipes',
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
-        blank=False,
         through='IngredientAmount'
     )
     name = models.CharField(
-        null=False,
-        blank=False,
         max_length=200,
     )
     image = models.ImageField(
         upload_to='recipes/images/',
-        blank=False,
-        null=False,
     )
-    text = models.TextField(
-        null=False,
-        blank=False,
-    )
+    text = models.TextField()
     cooking_time = models.IntegerField(
-        null=False,
-        blank=False,
         validators=[
             MinValueValidator(1),
             MaxValueValidator(999),
@@ -103,7 +86,7 @@ class Recipe(models.Model):
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
-        auto_now_add=True,
+        auto_now_add=True
     )
 
     class Meta:
@@ -119,14 +102,20 @@ class ShoppingCart(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        blank=False,
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        blank=False,
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='user_shopping_cart'
+            )
+        ]
 
 
 class Favorite(models.Model):
@@ -137,18 +126,21 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        blank=False,
         related_name='favorite',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='favorite',
-        blank=False,
     )
 
     class Meta:
-        unique_together = ('user', 'recipe',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='user_favorite_recipe'
+            )
+        ]
 
 
 class Subscription(models.Model):
@@ -166,6 +158,14 @@ class Subscription(models.Model):
         on_delete=models.CASCADE,
         related_name='subscribe_author',
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='user_subs_author'
+            )
+        ]
 
 
 class IngredientAmount(models.Model):

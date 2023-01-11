@@ -1,14 +1,6 @@
-import io
-import os
-
 from djoser.views import UserViewSet
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
@@ -23,28 +15,25 @@ from rest_framework.mixins import (
     RetrieveModelMixin,
 )
 
-from . import filters
+from . import filters, utils
+from .serializers import (
+    IngredientSerializer,
+    RecipeSerializer,
+    RecipeCreateSerializer,
+    RecipeForSubSerializer,
+    ShoppingCartSerializer,
+    SubscribeSerializer,
+    TagSerializer,
+    CustomUserSerializer,
+)
 from recipes.models import (
     Ingredient,
-    IngredientAmount,
     Favorite,
     Recipe,
     ShoppingCart,
     Subscription,
     Tag,
     User,
-)
-from .serializers import (
-    IngredientSerializer,
-    IngredientWithAmountSerializer,
-    RecipeSerializer,
-    RecipeCreateSerializer,
-    RecipeForSubSerializer,
-    ShoppingCartSerializer,
-    SubscribeSerializer,
-    SubscriptionsSerializer,
-    TagSerializer,
-    CustomUserSerializer,
 )
 
 
@@ -126,31 +115,33 @@ class ShoppingCartView(APIView):
     permission_classes = [IsAuthenticated,]
 
     def post(self, request, *args, **kwargs):
-        user = request.user
         recipe = Recipe.objects.get(pk=kwargs.get('recipe_id', None))
-        print(recipe)
-        if ShoppingCart.objects.filter(user=user, recipe=recipe):
+
+        if ShoppingCart.objects.filter(
+            user=request.user,
+            recipe=recipe
+        ).exists():
 
             return Response(
                 {'error': 'You can\'t add this recipe to shopping cart again'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        shopping_cart = ShoppingCart(user=user, recipe=recipe)
+        shopping_cart = ShoppingCart(user=request.user, recipe=recipe)
         shopping_cart.save()
 
         serializer = RecipeForSubSerializer(
-            recipe, context={'request': request, 'recipe': recipe}
+            recipe,
+            context={'request': request, 'recipe': recipe},
         )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, *args, **kwargs):
-        user = request.user
         recipe = Recipe.objects.get(pk=kwargs.get('recipe_id', None))
 
         try:
-            ShoppingCart.objects.get(recipe=recipe, user=user).delete()
+            ShoppingCart.objects.get(recipe=recipe, user=request.user).delete()
         except Favorite.DoesNotExist:
 
             return Response(
@@ -186,8 +177,8 @@ class FavoriteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        fav = Favorite(user=user, recipe=recipe)
-        fav.save()
+        favorite = Favorite(user=user, recipe=recipe)
+        favorite.save()
 
         serializer = RecipeForSubSerializer(
             recipe, context={'request': request, 'recipe': recipe}
@@ -229,7 +220,7 @@ class SubscriptionsView(APIView, LimitOffsetPagination):
 
         result_pages = self.paginate_queryset(authors, request, view=self)
 
-        serializer = SubscriptionsSerializer(
+        serializer = SubscribeSerializer(
             result_pages, many=True, context={'request': request}
         )
 
@@ -257,12 +248,14 @@ class SubscribeView(APIView):
         ):
 
             return Response(
-                {'error': 'You can\'t subscribe on this user'},
+                {
+                    'error': 'You can\'t subscribe on this user',
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        sub = Subscription(user=user, author=author)
-        sub.save()
+        subsciption = Subscription(user=user, author=author)
+        subsciption.save()
 
         serializer = SubscribeSerializer(
             author, context={'request': request, 'author': author}
@@ -290,60 +283,6 @@ class SubscribeView(APIView):
         return []
 
 
-def make_pdf(data, filename, http_status):
-    """
-    Не красиво, но хотя бы как-то выдаёт респонс файлом.
-    """
-    pdfmetrics.registerFont(TTFont(
-        'DejaVuSansCondensed',
-        os.path.join(os.path.dirname(
-            os.path.abspath(__file__)),
-            'DejaVuSansCondensed.ttf'
-        )
-    ))
-
-    width, height = A4
-    height -= 20
-    buffer = io.BytesIO()
-
-    pdf_file = canvas.Canvas(buffer, pagesize=A4)
-    pdf_file.setFont('DejaVuSansCondensed', 11)
-
-    pdf_file.drawString(width/2-20, height, 'Мой список покупок')
-    height -= 20
-
-    for recipe_in_cart in data:
-        recipe = Recipe.objects.get(id=recipe_in_cart.pop('recipe'))
-        ingredients = IngredientWithAmountSerializer(
-            IngredientAmount.objects.filter(recipe=recipe),
-            many=True
-        ).data
-
-        for ingredient in ingredients:
-            pdf_file.drawString(
-                10,
-                height,
-                '{name} - {amount} {unit}'.format(
-                    name=ingredient.pop('name'),
-                    amount=ingredient.pop('amount'),
-                    unit=ingredient.pop('measurement_unit')
-                )
-            )
-            height -= 10
-
-    pdf_file.showPage()
-    pdf_file.save()
-    buffer.seek(0)
-    response = HttpResponse(
-        content=buffer,
-        content_type='application/pdf',
-        status=http_status
-    )
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
-    return response
-
-
 class DownloadShoppingCart(APIView):
     """
     Вью класс для скачивания списка покупок.
@@ -360,7 +299,11 @@ class DownloadShoppingCart(APIView):
             many=True,
             context={'request': self.request}
         ).data
-        filename = 'ShoppingCart.pdf'
+        filename = 'shoppingcart.pdf'
         http_status = status.HTTP_200_OK
 
-        return make_pdf(data=data, filename=filename, http_status=http_status)
+        return utils.make_pdf(
+            data=data,
+            filename=filename,
+            http_status=http_status
+        )
