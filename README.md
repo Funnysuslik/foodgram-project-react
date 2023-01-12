@@ -38,7 +38,6 @@ Project is created with:
  * flake8==6.0.0
  * gunicorn==20.1.0
  * idna==3.4
- * itypes==1.2.0
  * MarkupSafe==2.1.1
  * oauthlib==3.2.2
  * Pillow==9.3.0
