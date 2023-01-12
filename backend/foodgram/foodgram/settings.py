@@ -12,7 +12,7 @@ if SECRET_KEY == 'abracodabra':
     except KeyError:
         SECRET_KEY = 'abracodabra'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['158.160.10.35', '.localhost', '127.0.0.1', '[::1]', '.backend']
 
