@@ -20,7 +20,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'
 USE_X_FORWARDED_HOST = True
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://158.160.10.35', 'https://158.160.10.35']
+CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://158.160.10.35', 'https://158.160.10.35', ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
