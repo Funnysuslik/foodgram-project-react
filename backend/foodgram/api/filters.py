@@ -4,6 +4,8 @@ from recipes.models import Recipe, Tag, User
 
 
 class IngredientFilter(filters.FilterSet):
+    """Просто фильтр оп имени.
+    В будущем омжно сделать выдачу по лучшему совпадению?"""
 
     name = filters.CharFilter(
         method='filter_name', field_name='name')
@@ -17,7 +19,12 @@ class IngredientFilter(filters.FilterSet):
 
 
 class RecipeFilter(filters.FilterSet):
-    """"""
+    """
+    Простой фильтр по автору и тэгам.
+    Доп поля:
+     - добавлено в избраное
+     - подписан на автора
+    """
 
     author = filters.ModelChoiceFilter(
         queryset=User.objects.all(),

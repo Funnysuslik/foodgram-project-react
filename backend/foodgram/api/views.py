@@ -103,7 +103,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateSerializer
 
     def perform_create(self, serializer):
-        print(self.request)
         serializer.save(author=self.request.user)
 
 
@@ -127,8 +126,7 @@ class ShoppingCartView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        shopping_cart = ShoppingCart(user=request.user, recipe=recipe)
-        shopping_cart.save()
+        ShoppingCart.objects.create(user=request.user, recipe=recipe)
 
         serializer = RecipeForSubSerializer(
             recipe,
@@ -167,9 +165,8 @@ class FavoriteView(APIView):
     def post(self, request, *args, **kwargs):
         pk = kwargs.get('recipe_id', None)
         recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
         if Favorite.objects.filter(
-            user=user, recipe=recipe
+            user=request.user, recipe=recipe
         ):
 
             return Response(
@@ -177,8 +174,7 @@ class FavoriteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        favorite = Favorite(user=user, recipe=recipe)
-        favorite.save()
+        Favorite.objects.create(user=request.user, recipe=recipe)
 
         serializer = RecipeForSubSerializer(
             recipe, context={'request': request, 'recipe': recipe}
@@ -189,10 +185,9 @@ class FavoriteView(APIView):
     def delete(self, request, *args, **kwargs):
         pk = kwargs.get('recipe_id', None)
         recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
 
         try:
-            Favorite.objects.get(recipe=recipe, user=user).delete()
+            Favorite.objects.get(recipe=recipe, user=request.user).delete()
         except Favorite.DoesNotExist:
 
             return Response(
@@ -215,8 +210,7 @@ class SubscriptionsView(APIView, LimitOffsetPagination):
     permission_classes = [IsAuthenticated,]
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        authors = User.objects.filter(subscribe_author__user=user)
+        authors = User.objects.filter(subscribe_author__user=request.user)
 
         result_pages = self.paginate_queryset(authors, request, view=self)
 
@@ -242,9 +236,8 @@ class SubscribeView(APIView):
     def post(self, request, *args, **kwargs):
         pk = kwargs.get('user_id', None)
         author = get_object_or_404(User, pk=pk)
-        user = request.user
-        if author == user or Subscription.objects.filter(
-            user=user, author=author
+        if author == request.user or Subscription.objects.filter(
+            user=request.user, author=author
         ):
 
             return Response(
@@ -254,8 +247,7 @@ class SubscribeView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        subsciption = Subscription(user=user, author=author)
-        subsciption.save()
+        Subscription.objects.create(user=request.user, author=author)
 
         serializer = SubscribeSerializer(
             author, context={'request': request, 'author': author}
@@ -266,10 +258,9 @@ class SubscribeView(APIView):
     def delete(self, request, *args, **kwargs):
         pk = kwargs.get('user_id', None)
         author = get_object_or_404(User, pk=pk)
-        user = request.user
 
         try:
-            Subscription.objects.get(author=author, user=user).delete()
+            Subscription.objects.get(author=author, user=request.user).delete()
         except Subscription.DoesNotExist:
             return Response(
                 {'error': 'You don\'t subscribed on this user'},
