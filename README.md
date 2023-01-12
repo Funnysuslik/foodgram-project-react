@@ -19,7 +19,6 @@ This project is the simple social network about cooking :smiley_cat:.
 ## Technologies
 
 Project is created with:
- * asgiref==3.6.0
  * certifi==2022.12.7
  * cffi==1.15.1
  * charset-normalizer==2.1.1
