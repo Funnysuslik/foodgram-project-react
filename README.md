@@ -14,7 +14,7 @@ Current IP: http://158.160.10.35
 
 ## General info
 
-This project is simple social network about cooking :smiley_cat:.
+This project is the simple social network about cooking :smiley_cat:.
 	
 ## Technologies
 
