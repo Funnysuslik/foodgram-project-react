@@ -32,7 +32,7 @@ def make_pdf(data, filename, http_status):
     pdf_file = canvas.Canvas(buffer, pagesize=A4)
     pdf_file.setFont('DejaVuSansCondensed', 11)
 
-    pdf_file.drawString(width/2-20, height, 'Мой список покупок')
+    pdf_file.drawString(width / 2 - 20, height, 'Мой список покупок')
     height -= 20
 
     for recipe_in_cart in data:

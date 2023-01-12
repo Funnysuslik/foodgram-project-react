@@ -4,9 +4,15 @@ from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'django-insecure-_&kp51&5pdzt_7vr=6*gb$1)j0edop6*z=kk*o1g3(zho5*s#7'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default='abracodabra')
 
-DEBUG = True
+if SECRET_KEY == 'abracodabra':
+    try:
+        SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+    except KeyError:
+        SECRET_KEY = 'abracodabra'
+
+DEBUG = False
 
 ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', '.backend']
 
