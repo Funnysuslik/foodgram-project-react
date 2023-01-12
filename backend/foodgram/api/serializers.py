@@ -156,9 +156,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         recipe = Recipe(**validated_data)
         recipe.save()
 
-        recipe = helpers.set_tags_ingredients(recipe, ingredients, tags)
-
-        return recipe
+        return helpers.set_tags_ingredients(recipe, ingredients, tags)
 
     @transaction.atomic
     def update(self, recipe, validated_data):
