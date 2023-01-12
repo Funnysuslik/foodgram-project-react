@@ -14,7 +14,7 @@ Current IP: -None-
 
 ## General info
 
-This project is simple social network about reviewing all titles in the world :smiley_cat: with API.
+This project is simple social network about cooking :smiley_cat:.
 	
 ## Technologies
 
