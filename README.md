@@ -41,7 +41,6 @@ Project is created with:
  * itypes==1.2.0
  * Jinja2==3.1.2
  * MarkupSafe==2.1.1
- * mccabe==0.7.0
  * oauthlib==3.2.2
  * Pillow==9.3.0
  * psycopg2==2.9.5
