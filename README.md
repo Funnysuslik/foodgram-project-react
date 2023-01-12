@@ -3,7 +3,7 @@
 
 ![workflow status](https://github.com/Funnysuslik/foodgram-project-react/actions/workflows/yamdb_workflow.yaml/badge.svg)
 
-Current IP: -None-
+Current IP: 158.160.10.35
 
 ## Table of contents
 
