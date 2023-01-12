@@ -65,7 +65,6 @@ Project is created with:
 ## Setup
 
 To run this project, install it locally using docker:
-
 ```
 $ cd ../infra/
 $ docker-copose up -d --build
