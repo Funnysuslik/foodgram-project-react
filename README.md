@@ -72,7 +72,7 @@ $ docker-copose up -d --build
 
 ## Documentation
 
-You can find all paths with description in documentation /api/docs/.
+You can find all paths with description in documentation at /api/docs/ endpiont.
 
 ## Autors
 
