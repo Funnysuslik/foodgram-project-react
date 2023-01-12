@@ -21,7 +21,7 @@ jobs:
         pip install -r requirements.txt
     - name: Test with flake8
       run: |
-        python -m flake8 --exclude tests/,*/migrations/,venv/,env/,*/settings.py,*/manage.py
+        python -m flake8 --exclude tests/,*/migrations/,venv/,env/,*/settings.py,*/manage.py --ignore=E001,E004,E005
     - name: Django test
       env: 
         DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }} 

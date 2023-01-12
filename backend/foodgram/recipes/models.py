@@ -86,7 +86,7 @@ class Recipe(models.Model):
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
-        
+
     )
 
     class Meta:

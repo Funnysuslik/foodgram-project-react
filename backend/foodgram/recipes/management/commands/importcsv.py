@@ -1,5 +1,4 @@
 """Filler."""
-from csv import DictReader
 from json import load
 from django.core.management.base import BaseCommand
 
@@ -23,7 +22,7 @@ class Command(BaseCommand):
         dictin = load(open('./data/ingredients.json', encoding='utf-8'))
 
         for row in dictin:
-            ingredient = Ingredient.objects.get_or_create(
+            Ingredient.objects.get_or_create(
                 name=row['name'],
                 measurement_unit=row['measurement_unit'],
             )
