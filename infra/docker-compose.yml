@@ -32,9 +32,7 @@ services:
       - media_value:/var/html/media/
 
   backend:
-    build:
-      context: ../backend/foodgram/
-      dockerfile: Dockerfile
+    image: funnysuslik/foodgram:v0.0.2
     restart: always
     ports:
       - "8000:8000"
