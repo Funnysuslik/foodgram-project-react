@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticatedOrReadOnly,
@@ -94,6 +93,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     filterset_class = filters.RecipeFilter
     permission_classes = [IsAuthenticatedOrReadOnly,]
+    pagination_class = utils.CustomPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -202,7 +202,7 @@ class FavoriteView(APIView):
         return []
 
 
-class SubscriptionsView(APIView, LimitOffsetPagination):
+class SubscriptionsView(APIView, utils.CustomPagination):
     """
     Вью класс для просмотра подписок.
     """

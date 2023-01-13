@@ -6,9 +6,15 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from rest_framework.pagination import PageNumberPagination
 
 from .serializers import IngredientWithAmountSerializer
 from recipes.models import IngredientAmount, Recipe
+
+
+class CustomPagination(PageNumberPagination):
+
+    page_size_query_param = 'limit'
 
 
 def make_pdf(data, filename, http_status):
