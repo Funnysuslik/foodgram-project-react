@@ -168,10 +168,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         recipe.tags.set(tags)
 
-        for ingredient in ingredients: 
-            ingredient_instance = IngredientAmount.objects.get_or_create( 
-                recipe=recipe, 
-                ingredient=ingredient['id'], 
+        for ingredient in ingredients:
+            ingredient_instance = IngredientAmount.objects.get_or_create(
+                recipe=recipe,
+                ingredient=ingredient['id'],
             )
             ingredient_instance.amount = ingredient['amount']
             ingredient_instance.save()
