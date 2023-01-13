@@ -160,9 +160,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, recipe, validated_data):
+        ingredients = validated_data.pop('ingredient_amount')
+        tags = validated_data.pop('tags')
 
         for field, value in validated_data.items():
             setattr(recipe, field, value)
+
+        recipe.tags.set(tags)
+
+        for ingredient in ingredients: 
+            ingredient_instance = IngredientAmount.objects.get_or_create( 
+                recipe=recipe, 
+                ingredient=ingredient['id'], 
+            )
+            ingredient_instance.amount = ingredient['amount']
+            ingredient_instance.save()
 
         return super().update(recipe, validated_data)
 
