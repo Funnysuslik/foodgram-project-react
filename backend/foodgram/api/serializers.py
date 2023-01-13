@@ -96,15 +96,15 @@ class IngredientWithAmountSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount',)
 
 
-class RecipeCreateIngredientSerializer(serializers.ModelSerializer): 
-    """ 
-    Сериализатор ингредиента для создания рецепта. 
-    """ 
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all()) 
-    amount = serializers.IntegerField() 
- 
-    class Meta: 
-        model = IngredientAmount 
+class RecipeCreateIngredientSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор ингредиента для создания рецепта.
+    """
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = IngredientAmount
         fields = ('id', 'amount')
 
 
@@ -210,7 +210,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_ingredients(self, recipe):
 
         return IngredientWithAmountSerializer(
-            IngredientAmount.objects.filter(recipe=recipe).all(), 
+            IngredientAmount.objects.filter(recipe=recipe).all(),
             many=True
         ).data
 
