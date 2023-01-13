@@ -166,8 +166,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for field, value in validated_data.items():
             setattr(recipe, field, value)
 
-        recipe = helpers.set_tags_ingredients(recipe, ingredients, tags)
-
         return super().update(recipe, validated_data)
 
 
