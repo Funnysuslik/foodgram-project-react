@@ -49,7 +49,7 @@ jobs:
         with:
           context: ./backend/foodgram/
           push: true
-          tags: funnysuslik/foodgram:v0.0.1
+          tags: funnysuslik/foodgram:v0.0.2
 
   deploy:
     if: ${{ github.ref }} == 'refs/heads/master'
